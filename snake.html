@@ -4,28 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- Bulma CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <!-- Optional: Add CSS for custom styling -->
     <style>
         /* Add your custom CSS styles here (if needed) */
+	html {
+            margin: 0;
+            overflow: hidden;
+            background-color: white;
+            color: #222222;
+            transition: background-color 0.3s, color 0.3s;
+        }
         body {
             margin: 0;
             overflow: hidden;
+            background-color: white;
+            color: #222222;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark-mode {
+            background-color: #222222;
+            color: white;
+        }
+        .dark-mode-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
         }
         canvas {
             display: block;
             margin: 0 auto;
-            border: 1px solid black;
+            /* Set boundary color based on dark mode */
+            border: 1px solid #222222;
         }
-		.buttons {
-            margin-top: 20px;
-			display: flex;
-            justify-content: center;
+	/* Custom styles for instructions box in dark mode */		
+        .box {
+            background-color: white;
+            color: black;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark-mode .box {
+            background-color: #444444;
+            color: white;
+        }
+	.title {
+            background-color: white;
+            color: black;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark-mode .title {
+            background-color: #222222;
+            color: white;
+        }
+	.subtitle {
+            background-color: white;
+            color: black;
+            transition: background-color 0.3s, color 0.3s;
+        }
+	.dark-mode .subtitle {
+            background-color: #444444;
+            color: white;
+        }
+        /* Set boundary color to white in dark mode */
+        .dark-mode canvas {
+            border-color: white;
         }
     </style>
 </head>
 <body>
+    <div class="dark-mode-btn" onclick="toggleDarkMode()">
+        <i class="fas fa-sun" id="sunIcon"></i>
+        <i class="fas fa-moon" id="moonIcon" style="display: none;"></i>
+    </div>
+
     <section class="section">
         <div class="container has-text-centered">
             <h1 class="title">Snake Game</h1>
@@ -34,15 +90,16 @@
                 <p>Use the arrow keys to control the snake.</p>
                 <p>Eat the red food to grow the snake and increase your score (+10 points for each time you eat the food).</p>
                 <p>Avoid running into the boundaries or the snake itself!</p>
-				<div class="buttons">
-					<button id="startButton" class="button is-primary" onclick="startGame()">Start Game</button>
-				</div>
+		<p>Toggle between white/dark mode by clicking the sun/moon icon at the top right corner of the page.</p>
+            </div>
+            <div class="buttons is-centered">
+                <button id="startButton" class="button is-primary" onclick="startGame()">Start Game</button>
             </div>
             <canvas id="gameCanvas" width="500" height="500"></canvas>
         </div>
     </section>
-	
-	<!-- Bulma Modal -->
+
+    <!-- Bulma Modal -->
     <div id="gameOverModal" class="modal">
         <div class="modal-background"></div>
         <div class="modal-content has-text-centered">
@@ -61,11 +118,31 @@
         const grid = 20;
         const canvasSize = canvas.width;
         const gridSize = canvasSize / grid;
-        let snake = [{ x: 5, y: 5 }];
+
+	const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const darkModeBtn = document.querySelector('.dark-mode-btn');
+        const html = document.querySelector('html');
+	const body = document.querySelector('body');
+
+	let snake = [{ x: 5, y: 5 }];
         let direction = { x: 1, y: 0 };
         let food = { x: 10, y: 10 };
         let score = 0;
         let gameInterval;
+
+        function toggleDarkMode() {
+	    html.classList.toggle('dark-mode');
+            body.classList.toggle('dark-mode');
+			
+            if (html.classList.contains('dark-mode')) {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'inline-block';
+            } else {
+                sunIcon.style.display = 'inline-block';
+                moonIcon.style.display = 'none';
+            }
+        }
 
         function drawSnake() {
             ctx.fillStyle = 'green';
@@ -91,25 +168,27 @@
             }
         }
 
-		function showGameOverModal() {
-			const scoreDisplay = document.getElementById('scoreDisplay');
-			scoreDisplay.textContent = score;
-			const modal = document.getElementById('gameOverModal');
-			modal.classList.add('is-active');
-		}
+	function showGameOverModal() {
+		const scoreDisplay = document.getElementById('scoreDisplay');
+		scoreDisplay.textContent = score;
+		const modal = document.getElementById('gameOverModal');
+		modal.classList.add('is-active');
+	}
 
-		function closeModal() {
-			const modal = document.getElementById('gameOverModal');
-			modal.classList.remove('is-active');
-		}
+	function closeModal() {
+		const modal = document.getElementById('gameOverModal');
+		modal.classList.remove('is-active');
+	}
 
         function checkCollision() {
             const head = snake[0];
+
             if (head.x < 0 || head.x >= grid || head.y < 0 || head.y >= grid) {
                 clearInterval(gameInterval);
                 showGameOverModal();
                 document.getElementById('startButton').disabled = false;
             }
+
             for (let i = 1; i < snake.length; i++) {
                 if (snake[i].x === head.x && snake[i].y === head.y) {
                     clearInterval(gameInterval);
@@ -128,6 +207,7 @@
 
         function handleKeyPress(event) {
             const key = event.key.toLowerCase();
+
             if (key === 'arrowup' && direction.y !== 1) {
                 direction = { x: 0, y: -1 };
             } else if (key === 'arrowdown' && direction.y !== -1) {
