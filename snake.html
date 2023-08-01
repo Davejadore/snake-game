@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <!-- Optional: Add CSS for custom styling -->
+    <style>
+        /* Add your custom CSS styles here (if needed) */
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border: 1px solid black;
+        }
+		.buttons {
+            margin-top: 20px;
+			display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container has-text-centered">
+            <h1 class="title">Snake Game</h1>
+            <div class="box">
+                <h2 class="subtitle">Instructions:</h2>
+                <p>Use the arrow keys to control the snake.</p>
+                <p>Eat the red food to grow the snake and increase your score (+10 points for each time you eat the food).</p>
+                <p>Avoid running into the boundaries or the snake itself!</p>
+				<div class="buttons">
+					<button id="startButton" class="button is-primary" onclick="startGame()">Start Game</button>
+				</div>
+            </div>
+            <canvas id="gameCanvas" width="500" height="500"></canvas>
+        </div>
+    </section>
+	
+	<!-- Bulma Modal -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content has-text-centered">
+            <div class="box">
+                <h2 class="subtitle">Game Over!</h2>
+                <p>Your Score: <span id="scoreDisplay">0</span></p>
+                <button class="button is-primary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const grid = 20;
+        const canvasSize = canvas.width;
+        const gridSize = canvasSize / grid;
+        let snake = [{ x: 5, y: 5 }];
+        let direction = { x: 1, y: 0 };
+        let food = { x: 10, y: 10 };
+        let score = 0;
+        let gameInterval;
+
+        function drawSnake() {
+            ctx.fillStyle = 'green';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            });
+        }
+
+        function drawFood() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+        }
+
+        function update() {
+            const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                food = { x: Math.floor(Math.random() * grid), y: Math.floor(Math.random() * grid) };
+            } else {
+                snake.pop();
+            }
+        }
+
+		function showGameOverModal() {
+			const scoreDisplay = document.getElementById('scoreDisplay');
+			scoreDisplay.textContent = score;
+			const modal = document.getElementById('gameOverModal');
+			modal.classList.add('is-active');
+		}
+
+		function closeModal() {
+			const modal = document.getElementById('gameOverModal');
+			modal.classList.remove('is-active');
+		}
+
+        function checkCollision() {
+            const head = snake[0];
+            if (head.x < 0 || head.x >= grid || head.y < 0 || head.y >= grid) {
+                clearInterval(gameInterval);
+                showGameOverModal();
+                document.getElementById('startButton').disabled = false;
+            }
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    clearInterval(gameInterval);
+                    showGameOverModal();
+                    document.getElementById('startButton').disabled = false;
+                }
+            }
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+            drawSnake();
+            drawFood();
+            checkCollision();
+        }
+
+        function handleKeyPress(event) {
+            const key = event.key.toLowerCase();
+            if (key === 'arrowup' && direction.y !== 1) {
+                direction = { x: 0, y: -1 };
+            } else if (key === 'arrowdown' && direction.y !== -1) {
+                direction = { x: 0, y: 1 };
+            } else if (key === 'arrowleft' && direction.x !== 1) {
+                direction = { x: -1, y: 0 };
+            } else if (key === 'arrowright' && direction.x !== -1) {
+                direction = { x: 1, y: 0 };
+            }
+        }
+
+        function startGame() {
+            document.getElementById('startButton').disabled = true;
+            snake = [{ x: 5, y: 5 }];
+            direction = { x: 1, y: 0 };
+            food = { x: 10, y: 10 };
+            score = 0;
+            gameInterval = setInterval(() => {
+                update();
+                drawGame();
+            }, 100);
+        }
+
+        document.addEventListener('keydown', handleKeyPress);
+    </script>
+</body>
+</html>
