@@ -33,5 +33,5 @@ This project was inspired by various Snake game tutorials and examples available
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute it as you see fit.
+This project is licensed under the [Apache 2.0 License](LICENSE). Feel free to use, modify, and distribute it as you see fit.
 
